@@ -1,0 +1,439 @@
+<template>
+    <el-container style="height: 100%;">
+        <el-aside width="600px">
+            <div id="paper">
+
+            </div>
+            <div id="layout-controls"></div>
+            <div id="link-controls-template"></div>
+            <div id="drag1" class="item">drag1</div>
+            <div id="drag2" class="item">drag2-limit</div>
+        </el-aside>
+        <el-main style="padding: 0; border-left: 1px solid #ccc;">
+            <div style="height: 30%; border-bottom: 1px solid #ccc;"></div>
+            <div style="height: 30%; border-bottom: 1px solid #ccc;" id="chart"></div>
+            <div style="height: 40%"></div>
+        </el-main>
+    </el-container>
+</template>
+
+<script>
+    import $ from 'jquery';
+    // import jsplumb from 'jsplumb';
+    // import uuid from 'uuid';
+    import highcharts from 'highcharts/highstock';
+    import axios from 'axios';
+    import query from './scenario5.js';
+    import moment from 'moment';
+    import joint from 'jointjs';
+
+    export default {
+        data() {
+            return {
+
+            };
+        },
+        methods: {
+            drawChart(data) {
+                highcharts.chart('chart', {
+                    credits: false,
+                    height: '100%',
+                    annotations: [
+                        {
+                            labelOptions: {
+                                allowOverlap: true,
+                                crop: true,
+                            },
+                        },
+                    ],
+                    chart: {
+                        spacing: [20, 20, 20, 20],
+                    },
+                    title: {
+                        text: null,
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        labels: {
+                            formatter: function() {
+                                return moment(this.value).format('YYYY-MM-DD');
+                            },
+                            overflow: 'justify',
+                            distance: 30,
+                        },
+                    },
+                    yAxis: {
+                        title: {
+                            text: null,
+                        },
+                    },
+                    legend: {
+                        enabled: false,
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'middle',
+                    },
+                    series: [{
+                        data: data.map(i => [Date.UTC(i.date.substr(0, 4) - 0, i.date.substr(5, 2) - 1, i.date.substr(8, 2) - 0), i.net_value]),
+                        states: {
+                            hover: {
+                                enabled: false,
+                            },
+                        },
+                    }],
+                    responsive: {
+                        rules: [
+                            {
+                                condition: {
+                                    maxWidth: 500,
+                                },
+                                chartOptions: {
+                                    legend: {
+                                        layout: 'horizontal',
+                                        align: 'center',
+                                        verticalAlign: 'bottom',
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            },
+        },
+        watch: {
+
+        },
+        mounted() {
+            (function() {
+
+                var Shape = joint.dia.Element.define('demo.Shape', {
+                    size: {
+                        width: 100,
+                        height: 50
+                    },
+                    attrs: {
+                        rect: {
+                            refWidth: '100%',
+                            refHeight: '100%',
+                            fill: 'ivory',
+                            stroke: 'gray',
+                            strokeWidth: 2,
+                            rx: 10,
+                            ry: 10
+                        },
+                        text: {
+                            refX: '50%',
+                            refY: '50%',
+                            yAlignment: 'middle',
+                            xAlignment: 'middle',
+                            fontSize: 30
+                        }
+                    }
+                }, {
+                    markup: '<rect/><text/>',
+
+                    setText: function(text) {
+                        return this.attr('text/text', text || '');
+                    }
+                });
+
+                var Link = joint.dia.Link.define('demo.Link', {
+                    attrs: {
+                        '.connection': {
+                            stroke: 'gray',
+                            strokeWidth: 2,
+                            pointerEvents: 'none',
+                            targetMarker: {
+                                type: 'path',
+                                fill: 'gray',
+                                stroke: 'none',
+                                d: 'M 10 -10 0 0 10 10 z'
+                            }
+                        }
+                    },
+                    connector: {
+                        name: 'rounded'
+                    },
+                    z: -1,
+                    weight: 1,
+                    minLen: 1,
+                    labelPosition: 'c',
+                    labelOffset: 10,
+                    labelSize: {
+                        width: 50,
+                        height: 30
+                    },
+                    labels: [{
+                        markup: '<rect/><text/>',
+                        attrs: {
+                            text: {
+                                fill: 'gray',
+                                textAnchor: 'middle',
+                                refY: 5,
+                                refY2: '-50%',
+                                fontSize: 20,
+                                cursor: 'pointer'
+                            },
+                            rect: {
+                                fill: 'lightgray',
+                                stroke: 'gray',
+                                strokeWidth: 2,
+                                refWidth: '100%',
+                                refHeight: '100%',
+                                refX: '-50%',
+                                refY: '-50%',
+                                rx: 5,
+                                ry: 5
+                            }
+                        },
+                        size: {
+                            width: 50, height: 30
+                        }
+                    }]
+
+                }, {
+                    markup: '<path class="connection"/><g class="labels"/>',
+
+                    connect: function(sourceId, targetId) {
+                        return this.set({
+                            source: { id: sourceId },
+                            target: { id: targetId }
+                        });
+                    },
+
+                    setLabelText: function(text) {
+                        return this.prop('labels/0/attrs/text/text', text || '');
+                    }
+                });
+
+                var LayoutControls = joint.mvc.View.extend({
+
+                    events: {
+                        change: 'layout',
+                        input: 'layout'
+                    },
+
+                    options: {
+                        padding: 50
+                    },
+
+                    init: function() {
+
+                        var options = this.options;
+                        if (options.adjacencyList) {
+                            options.cells = this.buildGraphFromAdjacencyList(options.adjacencyList);
+                        }
+
+                        this.listenTo(options.paper.model, 'change', function(cell, opt) {
+                            if (opt.layout) {
+                                this.layout();
+                            }
+                        });
+                    },
+
+                    layout: function() {
+
+                        var paper = this.options.paper;
+                        var graph = paper.model;
+                        var cells = this.options.cells;
+
+                        joint.layout.DirectedGraph.layout(cells, this.getLayoutOptions());
+
+                        if (graph.getCells().length === 0) {
+                            // The graph could be empty at the beginning to avoid cells rendering
+                            // and their subsequent update when elements are translated
+                            graph.resetCells(cells);
+                        }
+
+                        paper.fitToContent({
+                            padding: this.options.padding,
+                            allowNewOrigin: 'any'
+                        });
+
+                        this.trigger('layout');
+                    },
+
+                    getLayoutOptions: function() {
+                        return {
+                            setVertices: true,
+                            setLabels: true,
+                            ranker: this.$('#ranker').val(),
+                            rankDir: this.$('#rankdir').val(),
+                            align: this.$('#align').val(),
+                            rankSep: parseInt(this.$('#ranksep').val(), 10),
+                            edgeSep: parseInt(this.$('#edgesep').val(), 10),
+                            nodeSep: parseInt(this.$('#nodesep').val(), 10)
+                        };
+                    },
+
+                    buildGraphFromAdjacencyList: function(adjacencyList) {
+
+                        var elements = [];
+                        var links = [];
+
+                        Object.keys(adjacencyList).forEach(function(parentLabel) {
+                            // Add element
+                            elements.push(
+                                new Shape({ id: parentLabel }).setText(parentLabel)
+                            );
+                            // Add links
+                            adjacencyList[parentLabel].forEach(function(childLabel) {
+                                links.push(
+                                    new Link()
+                                        .connect(parentLabel, childLabel)
+                                        .setLabelText(parentLabel + '-' + childLabel)
+                                );
+                            });
+                        });
+
+                        // Links must be added after all the elements. This is because when the links
+                        // are added to the graph, link source/target
+                        // elements must be in the graph already.
+                        return elements.concat(links);
+                    }
+
+                });
+
+                var LinkControls = joint.mvc.View.extend({
+
+                    highlighter: {
+                        name: 'stroke',
+                        options: {
+                            attrs: {
+                                'stroke': 'lightcoral',
+                                'stroke-width': 4
+                            }
+                        }
+                    },
+
+                    events: {
+                        change: 'updateLink',
+                        input: 'updateLink'
+                    },
+
+                    init: function() {
+                        this.highlight();
+                        this.updateControls();
+                    },
+
+                    updateLink: function() {
+                        this.options.cellView.model.set(this.getModelAttributes(), { layout: true });
+                    },
+
+                    updateControls: function() {
+
+                        var link = this.options.cellView.model;
+
+                        this.$('#labelpos').val(link.get('labelPosition'));
+                        this.$('#labeloffset').val(link.get('labelOffset'));
+                        this.$('#minlen').val(link.get('minLen'));
+                        this.$('#weight').val(link.get('weight'));
+                    },
+
+                    getModelAttributes: function() {
+                        return {
+                            minLen: parseInt(this.$('#minlen').val(), 10),
+                            weight: parseInt(this.$('#weight').val(), 10),
+                            labelPosition: this.$('#labelpos').val(),
+                            labelOffset: parseInt(this.$('#labeloffset').val(), 10)
+                        };
+                    },
+
+                    onRemove: function() {
+                        this.unhighlight();
+                    },
+
+                    highlight: function() {
+                        this.options.cellView.highlight('rect', { highlighter: this.highlighter });
+                    },
+
+                    unhighlight: function() {
+                        this.options.cellView.unhighlight('rect', { highlighter: this.highlighter });
+                    }
+
+                }, {
+
+                    create: function(linkView) {
+                        this.remove();
+                        this.instance = new this({
+                            el: this.template.cloneNode(true).getElementById('link-controls'),
+                            cellView: linkView
+                        });
+                        this.instance.$el.insertAfter('#layout-controls');
+                    },
+
+                    remove: function() {
+                        if (this.instance) {
+                            this.instance.remove();
+                            this.instance = null;
+                        }
+                    },
+
+                    refresh: function() {
+                        if (this.instance) {
+                            this.instance.unhighlight();
+                            this.instance.highlight();
+                        }
+                    },
+
+                    instance: null,
+
+                    template: document.getElementById('link-controls-template').content
+
+                });
+
+                var controls = new LayoutControls({
+                    el: document.getElementById('layout-controls'),
+                    paper: new joint.dia.Paper({
+                        el: document.getElementById('paper'),
+                        interactive: function(cellView) {
+                            return cellView.model.isElement();
+                        }
+                    }).on({
+                        'link:pointerdown': LinkControls.create,
+                        'blank:pointerdown element:pointerdown': LinkControls.remove
+                    }, LinkControls),
+                    adjacencyList: {
+                        a: ['b','c','d'],
+                        b: ['d', 'e'],
+                        c: [],
+                        d: [],
+                        e: ['e'],
+                        f: [],
+                        g: ['b','i'],
+                        h: ['f'],
+                        i: ['f','h']
+                    }
+                }).on({
+                    'layout': LinkControls.refresh
+                }, LinkControls);
+
+                controls.layout();
+
+            })(joint);
+        },
+        created() {
+            // axios.post('http://173.82.232.228:443/task', query).then(res => {
+            //     console.log(res.data)
+            // })
+            // axios.get('http://173.82.232.228:443/result/545').then(res => {
+            //     console.log(res)
+            // })
+            let id = '2a00e225-5fad-4bb9-ba73-d174de67fdd8';
+            axios.get(`http://173.82.232.228:443/result/${id}`).then(res => {
+                this.drawChart(res.data.result);
+            })
+        }
+    }
+</script>
+
+<style lang="less">
+    .item {
+      height: 80px;
+      width: 80px;
+      border: 2px solid blue;
+      border-radius: 4px;
+      position: absolute;
+      font-size: 16px;
+    }
+</style>
