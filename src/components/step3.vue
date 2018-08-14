@@ -1,5 +1,6 @@
 <template>
     <div>
+        <div>init_portfolio</div>
         <el-button @click='add'>新增</el-button>
         <div class='table-wrap'>
             <el-table border stripe

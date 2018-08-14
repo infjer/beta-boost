@@ -1,8 +1,8 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Index from '@/components/Index';
-import Create from '@/components/Create';
-import Strategy from '@/components/Strategy';
+import Step1 from '@/components/Step1';
+import Step2 from '@/components/Step2';
+import Step3 from '@/components/Step3';
 
 Vue.use(Router)
 
@@ -11,17 +11,26 @@ export default new Router({
         {
             path: '/',
             name: 'Index',
-            component: Index,
+            redirect: '/robovisor_name',
         },
         {
-            path: '/create',
-            name: 'Create',
-            component: Create,
+            path: '/robovisor_name',
+            name: 'Step1',
+            component: Step1,
         },
         {
-            path: '/strategy',
-            name: 'Strategy',
-            component: Strategy,
+            path: '/robovisor/:id',
+            name: 'Robovisor',
+            component: Step2,
+        },
+        {
+            path: '/portofolio',
+            name: 'Portofolio',
+            component: Step3,
+        },
+        {
+            path: '*',
+            redirect: '/robovisor_name',
         },
     ]
 })

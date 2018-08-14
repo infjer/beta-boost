@@ -1,7 +1,5 @@
-import Index from '@/components/Index';
-
 const state = {
-    pageStack: [Index],
+    task_list: [],
 };
 
 export default state;

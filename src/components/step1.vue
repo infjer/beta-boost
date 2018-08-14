@@ -1,71 +1,84 @@
-<template>
-    <div>
-        <div>
-            <el-select v-if='templates.length > 0' v-model='template_name'>
-                <el-option
-                    v-for='(template, index) in templates'
-                    :key='index'
-                    :value='template.template_name'
-                    :label='template.template_display_name'
-                    >
-                </el-option>
-            </el-select>
-        </div>
-        <drag-plumb v-for='(task, index) in task_list' :task='task' :key='index'></drag-plumb>
-        <!-- <div>
-            <el-select v-if='task_list.length > 0' v-model='task_algo' @change='handleTaskAlgoChange'>
-                <el-option
-                    v-for='(task, index) in task_list'
-                    :key='index'
-                    :value='task.task_algo'
-                    :label='task.task_display_name'
-                    >
-                </el-option>
-            </el-select>
-        </div> -->
-    </div>
-</template>
-
 <script>
     import axios from 'axios';
-
-    import DragPlumb from './DragPlumb';
+    import { mapMutations } from 'vuex';
 
     export default {
         name: 'step1',
-        props: {
-            templates: {
-                type: Array,
-                default() {
-                    return [];
-                },
-            },
-        },
-        components: {
-            DragPlumb,
+        render() {
+            return (
+                <div>
+                    {
+                        this.templates.length !== 0? (
+                            <div>
+                                <span>请选择模板</span>
+                                <el-select value={ this.index } onChange={ this.handleSelectTemplate }>
+                                    {
+                                        this.templates.map((template, index) => (
+                                            <el-option
+                                                key={index}
+                                                value={ index }
+                                                label={ template.template_display_name }
+                                                >
+                                            </el-option>
+                                        ))
+                                    }
+                                </el-select>
+                            </div>
+                        ) : null
+                    }
+                    {
+                        this.index !== null? (
+                            <div>
+                                <span>请输入template名字</span>
+                                <el-input value={ this.robo_config_name } onChange={ this.handleInptChange }></el-input>
+                            </div>
+                        ) : null
+                    }
+                    <el-button onClick={ this.handleNextStep }>下一步</el-button>
+                </div>
+            )
         },
         data() {
             return {
-                template_name: '',
-                task_algo: '',
+                templates: [],
+                index: null,
+                robo_config_name: '',
             }
         },
-        computed: {
-            task_list: function() {
-                return (this.templates.find(item => item.template_name === this.template_name) || {}).task_list || [];
-            },
-        },
-        watch: {
-            task_list: function() {
-                this.task_algo = '';
+        props: {
+            next: {
+                type: Function,
+                default() {
+                    return () => {};
+                },
             },
         },
         methods: {
-            handleTaskAlgoChange(task_algo) {
-                axios.get(`http://173.82.232.228:443/api/algo/${task_algo}`).then(res => {
-                    console.log(res)
+            handleSelectTemplate(index) {
+                this.index = index;
+            },
+            handleInptChange(robo_config_name) {
+                this.robo_config_name = robo_config_name;
+            },
+            handleNextStep() {
+                let { index, robo_config_name } = this;
+                if(robo_config_name.trim() === '') return;
+                axios.post('http://173.82.232.228:443/api/template', {
+                    template_name: this.templates[index].template_name,
+                    robo_config_name,
+                }).then(res => {
+                    this.setTaskList(this.templates[index].task_list);
+                    this.$router.push(`/robovisor/${res.data.robo_config_id}`);
                 })
-            }
-        }
+            },
+            ...mapMutations({
+                setTaskList: 'SET_TASK_LIST',
+            }),
+        },
+        mounted() {
+            axios.get('http://173.82.232.228:443/api/template', {}).then(res => {
+                this.templates = res.data;
+            })
+        },
     }
 </script>

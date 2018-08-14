@@ -1,5 +1,5 @@
 const getters = {
-    pageStack: state => state.pageStack,
+    task_list: state => state.task_list,
 };
 
 export default getters;
