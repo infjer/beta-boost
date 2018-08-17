@@ -24,7 +24,7 @@ export default new Router({
             component: Step2,
         },
         {
-            path: '/portofolio',
+            path: '/portofolio/:id',
             name: 'Portofolio',
             component: Step3,
         },

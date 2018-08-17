@@ -28,10 +28,9 @@
                         )
                     }
                     {
-                        this.selectAlgo === null? null : (
-                            <form-schema ref="formSchema" schema={ this.schema } v-model={ this.model }>
-                                <el-button type="primary" onClick={ this.submit }>Subscribe</el-button>
-                                <el-button type="reset">Reset</el-button>
+                        this.selectAlgo === null || !this.schema? null : (
+                            <form-schema ref='formSchema' schema={ this.schema } v-model={ this.model }>
+                                <div style={{ display: 'none' }}></div>
                             </form-schema>
                         )
                     }
@@ -40,6 +39,7 @@
                             this.limit <= this.depth || this.sub_algo_types.length === 0? null : (
                                 this.sub_algo_types.map((sub, index) => (
                                 <recursion
+                                    ref={ `${sub.algo_type}_${this.depth + 1}` }
                                     key={ index }
                                     algo_type={ sub.algo_type }
                                     depth={ this.depth + 1 }
@@ -87,19 +87,22 @@
             handleSelectChange(index) {
                 this.selectAlgo = index;
             },
-            submit (e) {
-                // this.$refs.formSchema.form() returns the ElementUI's form instance
-                this.$refs.formSchema.form().validate(valid => {
-                    if (valid) {
-                        // this.model contains the valid data according your JSON Schema.
-                        // You can submit your model to the server here
-                        console.log(JSON.stringify(this.model))
-                        this.$refs.formSchema.clearErrorMessage()
-                    } else {
-                        this.$refs.formSchema.setErrorMessage('Please fill out the required fields')
-                        return false
-                    }
-                })
+            getFormData() {
+                let { algo_type: type, algo_name: clazz } = this.options[this.selectAlgo];
+                let building_blocks = {};
+                if(this.sub_algo_types.length !== 0) {
+                    this.sub_algo_types.map(i => {
+                        building_blocks[i.name] = this.$refs[`${i.algo_type}_${this.depth + 1}`].getFormData();
+                    })
+                } else {
+
+                }
+                return {
+                    type,
+                    clazz,
+                    config: this.schema? this.$refs.formSchema.data : undefined,
+                    building_blocks: this.sub_algo_types.length !== 0? building_blocks : undefined,
+                };
             },
         },
         mounted() {
@@ -109,8 +112,13 @@
         },
         watch: {
             selectAlgo(index) {
-                this.sub_algo_types = this.options[index].sub_algo_types;
-                this.schema = this.options[index].algo_config_schema;
+                let { sub_algo_types } = this.options[index];
+                this.sub_algo_types = Object.keys(sub_algo_types).map(name => ({
+                    name,
+                    algo_type: sub_algo_types[name],
+                }))
+                // this.sub_algo_types = this.options[index].sub_algo_types;
+                this.schema = require('./schema.json');
             },
         },
     }

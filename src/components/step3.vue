@@ -1,10 +1,18 @@
 <template>
     <div>
-        <div>init_portfolio</div>
-        <el-button @click='add'>新增</el-button>
+        <div>investables</div>
+        <el-select v-model='selectRoundLotter' v-if='roundlotters.length !== 0'>
+            <el-option
+                v-for='(roundlotter, index) in roundlotters'
+                :key='index'
+                :value='roundlotter.path'
+                :label='roundlotter.name'
+                >
+            </el-option>
+        </el-select>
         <div class='table-wrap'>
             <el-table border stripe
-                :data='data'
+                :data='investables'
                 height='100%'
                 empty-text='暂无数据'
                 >
@@ -13,7 +21,53 @@
                     label='symbol'
                     >
                     <template slot-scope='scope'>
-                        <el-input v-model='scope.row.symbol'></el-input>
+                        <el-select v-model='scope.row.selectIndex' v-if='symbols.length !== 0' @change='selectSymbol(scope.$index, scope.row.selectIndex, "investables")'>
+                            <el-option
+                                v-for='(symbol, index) in symbols'
+                                :key='index'
+                                :value='index'
+                                :label='symbol.symbol'
+                                >
+                            </el-option>
+                        </el-select>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                    prop='type'
+                    label='type'
+                    >
+                </el-table-column>
+                <el-table-column
+                    prop='delete'
+                    :render-header='renderHeaderInvest'
+                    >
+                    <template slot-scope='scope'>
+                        <el-button @click='delInvest(scope.$index)'>删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+        <div>init_portfolio</div>
+        <div class='table-wrap'>
+            <el-table border stripe
+                :data='init_portfolio'
+                height='100%'
+                empty-text='暂无数据'
+                >
+                <el-table-column
+                    prop='symbol'
+                    label='symbol'
+                    >
+                    <template slot-scope='scope'>
+                        <el-select v-model='scope.row.selectIndex' v-if='symbols.length !== 0' @change='selectSymbol(scope.$index, scope.row.selectIndex, "init_portfolio")'>
+                            <el-option
+                                v-for='(symbol, index) in symbols'
+                                :key='index'
+                                :value='index'
+                                :label='symbol.symbol'
+                                >
+                            </el-option>
+                        </el-select>
                     </template>
                 </el-table-column>
                 <el-table-column
@@ -26,14 +80,17 @@
                 </el-table-column>
                 <el-table-column
                     prop='delete'
-                    label='操作'
+                    :render-header='renderHeaderInit'
                     >
                     <template slot-scope='scope'>
-                        <el-button @click='del(scope.$index)'>删除</el-button>
+                        <el-button @click='delInit(scope.$index)'>删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
         </div>
+        <div>未投资金额</div>
+        <el-input v-model='uninvested_cash' type='number'></el-input>
+        <el-button @click='submit'>提交</el-button>
     </div>
 </template>
 
@@ -52,7 +109,12 @@
         },
         data() {
             return {
-                data: [],
+                investables: [],
+                init_portfolio: [],
+                roundlotters: [],
+                symbols: [],
+                selectRoundLotter: null,
+                uninvested_cash: null,
             }
         },
         computed: {
@@ -62,21 +124,112 @@
 
         },
         methods: {
-            add() {
-                this.data.push({ symbol: '', volume: '', });
+            addInvest() {
+                this.investables.push({ symbol: null, type: null, selectIndex: null, });
             },
-            del(index) {
-                this.data.splice(index, 1);
+            delInvest(index) {
+                this.investables.splice(index, 1);
             },
+            addInit() {
+                this.init_portfolio.push({ symbol: null, type: null, volume: null, selectIndex: null, });
+            },
+            delInit(index) {
+                this.init_portfolio.splice(index, 1);
+            },
+            renderHeaderInvest(h) {
+                return h(
+                    'el-button',
+                    {
+                        on: {
+                            click: this.addInvest,
+                        },
+                    },
+                    ['添加'],
+                )
+            },
+            renderHeaderInit(h) {
+                return h(
+                    'el-button',
+                    {
+                        on: {
+                            click: this.addInit,
+                        },
+                    },
+                    ['添加'],
+                )
+            },
+            selectSymbol($index, index, tableDataName) {
+                this[tableDataName][$index].symbol = this.symbols[index].symbol;
+                this[tableDataName][$index].type = this.symbols[index].type;
+                this[tableDataName] = this[tableDataName].slice(0);
+            },
+            submit() {
+                let { selectRoundLotter: roundlotter, uninvested_cash, investables, init_portfolio: volumes } = this;
+                let robo_config_id = this.$route.params.id;
+                let data = {};
+                if(!roundlotter) {
+                    this.$message({
+                        type: 'error',
+                        message: '请选择roundlotter',
+                    })
+                    return;
+                } else {
+                    data.roundlotter = roundlotter;
+                }
+
+                data.init_portfolio = {};
+                uninvested_cash = parseFloat(uninvested_cash);
+                if(isNaN(uninvested_cash)) {
+                    this.$message({
+                        type: 'error',
+                        message: '请输入正确的未投资金额',
+                    })
+                    return;
+                } else {
+                    data.init_portfolio.uninvested_cash = uninvested_cash;
+                }
+                let flag = true;
+                volumes = volumes.map(i => {
+                    delete i.selectIndex;
+                    delete i.type;
+                    i.volume = parseFloat(i.volume);
+                    if(isNaN(i.volume)) {
+                        flag = false;
+                    }
+                    return i;
+                })
+                if(!flag) {
+                    this.$message({
+                        type: 'error',
+                        message: '请输入正确的数字',
+                    })
+                    return;
+                } else {
+                    data.init_portfolio.volumes = volumes;
+                }
+
+                data.investables = investables.map(i => {
+                    delete i.selectIndex;
+                    return i;
+                }).filter(i => i.symbol !== null)
+                data.robo_config_id = this.$route.params.id;
+                axios.post(`http://173.82.232.228:443/api/port`, data).then(res => {
+                    console.log(res.data)
+                })
+            }
         },
         mounted() {
-
+            axios.get(`http://173.82.232.228:443/api/port`).then(res => {
+                let { roundlotter, symbols } = res.data;
+                this.roundlotters = roundlotter;
+                this.symbols = symbols;
+            })
         },
     }
 </script>
 
 <style lang='less' scoped>
     .table-wrap {
-        height: 500px;
+        height: 400px;
     }
 </style>

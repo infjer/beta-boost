@@ -9,7 +9,24 @@
         render() {
             return (
                 <div>
-                    <div>id={ this.$route.params.id }</div>
+                    <div>factor</div>
+                    {
+                        this.factors.length === 0? null : (
+                            <el-select multiple value={ this.factor } onChange={ this.handleSelectFactor }>
+                                {
+                                    this.factors.map((factor, index) => (
+                                        <el-option
+                                            key={ index }
+                                            value={ index }
+                                            label={ factor.name }
+                                            >
+                                        </el-option>
+                                    ))
+                                }
+                            </el-select>
+                        )
+                    }
+                    <el-button type='primary' onClick={ this.saveFactor }>保存factor</el-button>
                     <div class='task'>
                         {
                             this.task_list.map((task, index) => (
@@ -104,7 +121,8 @@
                                         })()
                                     }
                                     <el-button onClick={ this.handleSave.bind(this, index) }>保存</el-button>
-                                    <recursion algo_type={ task.task_algo } limit={ 4 } depth={ 1 }></recursion>
+                                    <recursion ref={ `${task.task_algo}_1` } algo_type={ task.task_algo } limit={ 4 } depth={ 1 }></recursion>
+                                    <el-button onClick={ this.handleSaveForm.bind(this, task.task_algo) }>保存</el-button>
                                 </div>
                             ))
                         }
@@ -128,6 +146,8 @@
             return {
                 schedules: [],
                 selectSchedule: [],
+                factors: [],
+                factor: [],
             }
         },
         computed: {
@@ -187,12 +207,36 @@
                 })
             },
             handleNextStep() {
-                this.$router.push(`/portofolio`);
+                this.$router.push(`/portofolio/${this.$route.params.id}`);
+            },
+            handleSelectFactor(value) {
+                this.factor = value;
+            },
+            saveFactor() {
+                let data = {
+                    robo_config_id: this.$route.params.id,
+                    factor: this.factor.map(i => this.factors[i])
+                }
+                axios.post(`http://173.82.232.228:443/api/factor`, data).then(res => {
+
+                })
+            },
+            handleSaveForm(task_algo) {
+                let data = {
+                    [task_algo]: this.$refs[`${task_algo}_1`].getFormData(),
+                    robo_config_id: this.$route.params.id,
+                };
+                axios.post(`http://173.82.232.228:443/api/algo`, data).then(res => {
+                    console.log(res.data)
+                })
             },
         },
         created() {
             axios.get(`http://173.82.232.228:443/api/sched`).then(res => {
                 this.schedules = res.data;
+            })
+            axios.get(`http://173.82.232.228:443/api/factor`).then(res => {
+                this.factors = res.data.factor;
             })
             this.selectSchedule = this.task_list.map(task => ({
                 type: task.task_type,
@@ -204,9 +248,7 @@
             // })
         },
         mounted() {
-            // setInterval(() => {
-                // console.log(this.task_list)
-            // }, 2000)
+
         },
     }
 </script>
