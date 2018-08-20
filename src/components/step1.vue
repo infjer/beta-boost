@@ -6,35 +6,37 @@
         name: 'step1',
         render() {
             return (
-                <div>
-                    {
-                        this.templates.length !== 0? (
-                            <div>
-                                <span>请选择模板</span>
-                                <el-select value={ this.index } onChange={ this.handleSelectTemplate }>
-                                    {
-                                        this.templates.map((template, index) => (
-                                            <el-option
-                                                key={index}
-                                                value={ index }
-                                                label={ template.template_display_name }
-                                                >
-                                            </el-option>
-                                        ))
-                                    }
-                                </el-select>
-                            </div>
-                        ) : null
-                    }
-                    {
-                        this.index !== null? (
-                            <div>
-                                <span>请输入template名字</span>
-                                <el-input value={ this.robo_config_name } onChange={ this.handleInptChange }></el-input>
-                            </div>
-                        ) : null
-                    }
-                    <el-button onClick={ this.handleNextStep }>下一步</el-button>
+                <div class='step1'>
+                    <el-form label-width='200px'>
+                        {
+                            this.templates.length !== 0? (
+                                <el-form-item label='请选择模板'>
+                                    <el-select value={ this.index } onChange={ this.handleSelectTemplate }>
+                                        {
+                                            this.templates.map((template, index) => (
+                                                <el-option
+                                                    key={index}
+                                                    value={ index }
+                                                    label={ template.template_display_name }
+                                                    >
+                                                </el-option>
+                                            ))
+                                        }
+                                    </el-select>
+                                </el-form-item>
+                            ) : null
+                        }
+                        {
+                            this.index !== null? (
+                                <el-form-item label='请输入template名字'>
+                                    <el-input value={ this.robo_config_name } onChange={ this.handleInptChange }></el-input>
+                                </el-form-item>
+                            ) : null
+                        }
+                    </el-form>
+                    <div class='button-wrap'>
+                        <el-button type='primary' onClick={ this.handleNextStep }>下一步</el-button>
+                    </div>
                 </div>
             )
         },
@@ -82,3 +84,17 @@
         },
     }
 </script>
+
+<style lang='less' scoped>
+    .step1 {
+        padding: 40px 0;
+        .el-form {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .button-wrap {
+            text-align: center;
+            margin-top: 40px;
+        }
+    }
+</style>

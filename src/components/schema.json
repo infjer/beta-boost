@@ -4,7 +4,7 @@
     "properties": {
         "rebalance_weighting_threshold": {
             "type": "string",
-            "title": "The Rebalance_weighting_threshold Schema"
+            "title": "weighting_threshold"
         }
     }
 }

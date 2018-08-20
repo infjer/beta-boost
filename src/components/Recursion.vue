@@ -5,35 +5,40 @@
         name: 'recursion',
         render() {
             return (
-                <div>
-                    <div>depth={ this.depth }</div>
-                    {
-                        this.options.length === 0? null : (
-                            <el-select
-                                value={ this.selectAlgo }
-                                placeholder='请选择algo'
-                                onChange={ this.handleSelectChange }
-                                >
+                <div class='recursion'>
+                    <el-collapse>
+                        <el-collapse-item>
+                            <div slot='title'>
                                 {
-                                    this.options.map((option, index) => (
-                                        <el-option
-                                            key={ index }
-                                            value={ index }
-                                            label={ option.algo_name }
+                                    this.options.length === 0? null : (
+                                        <el-select
+                                            value={ this.selectAlgo }
+                                            placeholder='请选择algo'
+                                            onChange={ this.handleSelectChange }
                                             >
-                                        </el-option>
-                                    ))
+                                            {
+                                                this.options.map((option, index) => (
+                                                    <el-option
+                                                        key={ index }
+                                                        value={ index }
+                                                        label={ option.algo_name }
+                                                        >
+                                                    </el-option>
+                                                ))
+                                            }
+                                        </el-select>
+                                    )
                                 }
-                            </el-select>
-                        )
-                    }
-                    {
-                        this.selectAlgo === null || !this.schema? null : (
-                            <form-schema ref='formSchema' schema={ this.schema } v-model={ this.model }>
-                                <div style={{ display: 'none' }}></div>
-                            </form-schema>
-                        )
-                    }
+                            </div>
+                            {
+                                this.selectAlgo === null || !this.schema? null : (
+                                    <form-schema ref='formSchema' schema={ this.schema } v-model={ this.model }>
+                                        <div style={{ display: 'none' }}></div>
+                                    </form-schema>
+                                )
+                            }
+                        </el-collapse-item>
+                    </el-collapse>
                     <div class='recursion-wrap'>
                         {
                             this.limit <= this.depth || this.sub_algo_types.length === 0? null : (
@@ -61,7 +66,7 @@
                 type: String,
                 default() {
                     return '';
-                }
+                },
             },
             limit: {
                 type: Number,
@@ -88,6 +93,7 @@
                 this.selectAlgo = index;
             },
             getFormData() {
+                if(this.selectAlgo === null) return;
                 let { algo_type: type, algo_name: clazz } = this.options[this.selectAlgo];
                 let building_blocks = {};
                 if(this.sub_algo_types.length !== 0) {
@@ -124,7 +130,13 @@
     }
 </script>
 
-<style lang='less'>
+<style lang='less' scoped>
+    .recursion {
+        margin: 0 40px;
+    }
+    .el-collapse {
+        margin-bottom: 20px;
+    }
     .recursion-wrap {
         display: flex;
         > div {

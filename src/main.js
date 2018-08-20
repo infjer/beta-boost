@@ -11,7 +11,7 @@ import './css/reset.less';
 
 FormSchema.setComponent('form', 'el-form', ({ vm }) => {
     // vm is the FormSchema VM
-    const labelWidth = '120px';
+    const labelWidth = '160px';
     const model = vm.data;
     const rules = {};
     vm.fields.forEach(field => {

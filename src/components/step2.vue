@@ -8,126 +8,137 @@
         name: 'step2',
         render() {
             return (
-                <div>
-                    <div>factor</div>
-                    {
-                        this.factors.length === 0? null : (
-                            <el-select multiple value={ this.factor } onChange={ this.handleSelectFactor }>
-                                {
-                                    this.factors.map((factor, index) => (
-                                        <el-option
-                                            key={ index }
-                                            value={ index }
-                                            label={ factor.name }
-                                            >
-                                        </el-option>
-                                    ))
-                                }
-                            </el-select>
-                        )
-                    }
-                    <el-button type='primary' onClick={ this.saveFactor }>保存factor</el-button>
-                    <div class='task'>
+                <div class='step2'>
+                    <el-form inline label-width='200px'>
+                        <el-form-item label='请选择factor'>
+                            {
+                                this.factors.length === 0? null : (
+                                    <el-select multiple value={ this.factor } onChange={ this.handleSelectFactor }>
+                                        {
+                                            this.factors.map((factor, index) => (
+                                                <el-option
+                                                    key={ index }
+                                                    value={ index }
+                                                    label={ factor.name }
+                                                    >
+                                                </el-option>
+                                            ))
+                                        }
+                                    </el-select>
+                                )
+                            }
+                            <el-button type='primary' onClick={ this.saveFactor }>保存factor</el-button>
+                        </el-form-item>
+                    </el-form>
+                    <el-collapse>
                         {
                             this.task_list.map((task, index) => (
-                                <div key={ index } class='task_item'>
-                                    <div>task_algo={ task.task_algo }</div>
-                                    <div>task_display_name={ task.task_display_name }</div>
-                                    <div>task_type={ task.task_type }</div>
-                                    <div>
-                                        <span>请选择schedule</span>
-                                        <el-select
-                                            value={ this.selectSchedule[index].name }
-                                            placeholder='请选择schedule'
-                                            onChange={ this.handleSelectChange.bind(this, index) }
-                                            >
-                                            {
-                                                this.schedules.map((schedule, _index) => (
-                                                    <el-option
-                                                        key={ _index }
-                                                        value={ _index }
-                                                        label={ schedule.name }
-                                                        >
-                                                    </el-option>
-                                                ))
-                                            }
-                                        </el-select>
-                                    </div>
-                                    <div>您选择的是</div>
-                                    {
-                                        (() => {
-                                            if(this.selectSchedule[index].name === undefined) return null;
-                                            let { template, variables } = this.selectSchedule[index];
-                                            if(variables.length === 0) return ( <div>{ template }</div> );
-                                            let t = template.split(/\{[a-zA-Z]*\}/g);
-                                            let length = Math.max(variables.length, t.length);
-                                            let arr = [];
-                                            for(let i = 0; i < length; i++) {
-                                                if(t[i] !== undefined) arr.push(<span>{ t[i] }</span>);
-                                                if(variables[i] !== undefined) {
-                                                    let v = variables[i];
-                                                    let options = [];
-                                                    if(v === 'dayOfWeek' || v === 'daysOfWeek') {
-                                                        options = [
-                                                            { label: '一', value: 'MON', },
-                                                            { label: '二', value: 'TUE', },
-                                                            { label: '三', value: 'WEN', },
-                                                            { label: '四', value: 'THU', },
-                                                            { label: '五', value: 'FRI', },
-                                                            { label: '六', value: 'SAT', },
-                                                            { label: '七', value: 'SUN', },
-                                                        ];
-                                                        arr.push(
-                                                            <el-select
-                                                                multiple={ v === 'daysOfWeek' }
-                                                                value={ this.selectSchedule[index].form[v] }
-                                                                onChange={ this.handleScheduleChange.bind(this, index, v, v === 'daysOfWeek') }
-                                                                >
-                                                                {
-                                                                    options.map((option, _index) => (
-                                                                        <el-option
-                                                                            key={ _index }
-                                                                            value={ option.value }
-                                                                            label={ option.label }
-                                                                            >
-                                                                        </el-option>
-                                                                    ))
-                                                                }
-                                                            </el-select>
-                                                        )
-                                                    } else {
-                                                        options = Array.from({ length: v === 'hour'? 24 : 60 }, (v, k) => k).map(i => ({ label: i, value: i }));
-                                                        arr.push(
-                                                            <el-select
-                                                                value={ this.selectSchedule[index].form[v] }
-                                                                onChange={ this.handleScheduleChange.bind(this, index, v, v === 'daysOfWeek') }
-                                                                >
-                                                                {
-                                                                    options.map((option, _index) => (
-                                                                        <el-option
-                                                                            key={ _index }
-                                                                            value={ option.value }
-                                                                            label={ option.label }
-                                                                            >
-                                                                        </el-option>
-                                                                    ))
-                                                                }
-                                                            </el-select>
-                                                        )
-                                                    }
+                                <el-collapse-item title={ task.task_display_name }>
+                                    <el-form inline>
+                                        <el-form-item>
+                                            <el-select
+                                                value={ this.selectSchedule[index].name }
+                                                placeholder='请选择schedule'
+                                                onChange={ this.handleSelectChange.bind(this, index) }
+                                                >
+                                                {
+                                                    this.schedules.map((schedule, _index) => (
+                                                        <el-option
+                                                            key={ _index }
+                                                            value={ _index }
+                                                            label={ schedule.name }
+                                                            >
+                                                        </el-option>
+                                                    ))
                                                 }
+                                            </el-select>
+                                        </el-form-item>
+
+                                        {
+                                            !this.selectSchedule[index].variables? null : (<el-form-item class='tip-label'>您选择的schedule是：</el-form-item>)
+                                        }
+                                        <el-form-item class='schedule'>
+                                            {
+                                                (() => {
+                                                    if(this.selectSchedule[index].name === undefined) return null;
+                                                    let { template, variables } = this.selectSchedule[index];
+                                                    if(variables.length === 0) return ( <div class='schedule-text'>{ template }</div> );
+                                                    let t = template.split(/\{[a-zA-Z]*\}/g);
+                                                    let length = Math.max(variables.length, t.length);
+                                                    let arr = [];
+                                                    for(let i = 0; i < length; i++) {
+                                                        if(t[i] !== undefined) arr.push(<span>{ t[i] }</span>);
+                                                        if(variables[i] !== undefined) {
+                                                            let v = variables[i];
+                                                            let options = [];
+                                                            if(v === 'dayOfWeek' || v === 'daysOfWeek') {
+                                                                options = [
+                                                                    { label: '一', value: 'MON', },
+                                                                    { label: '二', value: 'TUE', },
+                                                                    { label: '三', value: 'WEN', },
+                                                                    { label: '四', value: 'THU', },
+                                                                    { label: '五', value: 'FRI', },
+                                                                    { label: '六', value: 'SAT', },
+                                                                    { label: '七', value: 'SUN', },
+                                                                ];
+                                                                arr.push(
+                                                                    <el-select
+                                                                        multiple={ v === 'daysOfWeek' }
+                                                                        collapse-tags
+                                                                        value={ this.selectSchedule[index].form[v] }
+                                                                        onChange={ this.handleScheduleChange.bind(this, index, v, v === 'daysOfWeek') }
+                                                                        >
+                                                                        {
+                                                                            options.map((option, _index) => (
+                                                                                <el-option
+                                                                                    key={ _index }
+                                                                                    value={ option.value }
+                                                                                    label={ option.label }
+                                                                                    >
+                                                                                </el-option>
+                                                                            ))
+                                                                        }
+                                                                    </el-select>
+                                                                )
+                                                            } else {
+                                                                options = Array.from({ length: v === 'hour'? 24 : 60 }, (v, k) => k).map(i => ({ label: i, value: i }));
+                                                                arr.push(
+                                                                    <el-select
+                                                                        value={ this.selectSchedule[index].form[v] }
+                                                                        onChange={ this.handleScheduleChange.bind(this, index, v, v === 'daysOfWeek') }
+                                                                        >
+                                                                        {
+                                                                            options.map((option, _index) => (
+                                                                                <el-option
+                                                                                    key={ _index }
+                                                                                    value={ option.value }
+                                                                                    label={ option.label }
+                                                                                    >
+                                                                                </el-option>
+                                                                            ))
+                                                                        }
+                                                                    </el-select>
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                    return arr;
+                                                })()
                                             }
-                                            return arr;
-                                        })()
-                                    }
-                                    <el-button onClick={ this.handleSave.bind(this, index) }>保存</el-button>
-                                    <recursion ref={ `${task.task_algo}_1` } algo_type={ task.task_algo } limit={ 4 } depth={ 1 }></recursion>
-                                    <el-button onClick={ this.handleSaveForm.bind(this, task.task_algo) }>保存</el-button>
-                                </div>
+                                        </el-form-item>
+                                        <el-button type='primary' class='save-schedule' onClick={ this.handleSave.bind(this, index) }>保存schedule</el-button>
+                                    </el-form>
+                                    <recursion ref={ `${task.task_algo}_1` } algo_type={ task.task_algo } limit={ 3 } depth={ 1 }></recursion>
+                                    <div class='button-wrap'>
+                                        <el-button type='primary' onClick={ this.handleSaveForm.bind(this, task.task_algo) }>保存</el-button>
+                                    </div>
+                                </el-collapse-item>
                             ))
                         }
+                    </el-collapse>
+                    <div class='button-wrap'>
+                        <el-button type='primary' onClick={ this.handleNextStep }>下一步</el-button>
                     </div>
-                    <el-button onClick={ this.handleNextStep }>下一步</el-button>
                 </div>
             )
         },
@@ -154,9 +165,6 @@
             ...mapGetters([
                 'task_list',
             ])
-        },
-        watch: {
-
         },
         methods: {
             handleSelectChange(task_index, _index) {
@@ -226,6 +234,7 @@
                     [task_algo]: this.$refs[`${task_algo}_1`].getFormData(),
                     robo_config_id: this.$route.params.id,
                 };
+                if(!data[task_algo]) return;
                 axios.post(`http://173.82.232.228:443/api/algo`, data).then(res => {
                     console.log(res.data)
                 })
@@ -241,23 +250,66 @@
             this.selectSchedule = this.task_list.map(task => ({
                 type: task.task_type,
             }))
-            // this.task_list.map(i => {
-            //     axios.get(`http://173.82.232.228:443/api/algo/${i.task_algo}`).then(res => {
-            //
-            //     })
-            // })
-        },
-        mounted() {
-
         },
     }
 </script>
 
 <style lang='less' scoped>
-    .task {
-        display: flex;
-        .task_item {
-            flex: 1;
+    .step2 {
+        padding: 40px 20px;
+        .el-form {
+            width: 80%;
+            margin: 0 auto 20px;
+            .el-button {
+                margin-left: 12px;
+            }
+        }
+        .el-collapse {
+            .el-form {
+                width: 100%;
+                .el-form-item {
+                    margin-bottom: 0;
+                    .el-form-item__content {
+                        span {
+                            margin: 0 5px;
+                        }
+                    }
+                }
+            }
+
+        }
+        .task {
+            display: flex;
+            .task_item {
+                flex: 1 1 0;
+                padding: 0 10px;
+                text-align: center;
+                .task_name {
+                    font-size: 16px;
+                    line-height: 32px;
+                }
+                .schedule {
+                    .el-select {
+                        width: 90px;
+                        margin: 0 5px;
+                    }
+                    .schedule-text {
+                        font-size: 16px;
+                        line-height: 32px;
+                    }
+                }
+                .tip-label {
+                    font-size: 14px;
+                    line-height: 28px;
+                }
+                .save-schedule {
+                    margin: 10px 0 40px;
+                }
+            }
+        }
+        .button-wrap {
+            text-align: center;
+            margin-top: 40px;
         }
     }
 </style>
