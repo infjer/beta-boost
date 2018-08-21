@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "type": "object",
+    "properties": {
+        "target": {
+            "type": "string",
+            "title": "target"
+        },
+        "factor": {
+            "type": "string",
+            "title": "factor"
+        },
+        "factor": {
+            "type": "string",
+            "title": "factor"
+        },
+        "weight_picker": {
+            "type": "string",
+            "title": "weight_picker"
+        }
+    }
+}

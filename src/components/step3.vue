@@ -13,95 +13,103 @@
                 </el-select>
             </el-form-item>
         </el-form>
-        <h2>investables</h2>
-        <div class='table-wrap'>
-            <el-table border stripe
-                :data='investables'
-                height='100%'
-                empty-text='暂无数据'
-                :cell-style='getCellStyle'
-                :header-cell-style='getHeaderCellStyle'
-                >
-                <el-table-column
-                    prop='symbol'
-                    label='symbol'
-                    align='center'
-                    >
-                    <template slot-scope='scope'>
-                        <el-select v-model='scope.row.selectIndex' v-if='symbols.length !== 0' @change='selectSymbol(scope.$index, scope.row.selectIndex, "investables")'>
-                            <el-option
-                                v-for='(symbol, index) in symbols'
-                                :key='index'
-                                :value='index'
-                                :label='symbol.symbol'
-                                >
-                            </el-option>
-                        </el-select>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop='type'
-                    label='type'
-                    align='center'
-                    >
-                </el-table-column>
-                <el-table-column
-                    prop='delete'
-                    :render-header='renderHeaderInvest'
-                    align='center'
-                    >
-                    <template slot-scope='scope'>
-                        <el-button @click='delInvest(scope.$index)'>删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+        <div style='display: flex'>
+            <div style='flex: 1; margin-right: 20px;'>
+                <h2>investables</h2>
+                <div class='table-wrap'>
+                    <el-table border stripe
+                        :data='investables'
+                        height='100%'
+                        empty-text='暂无数据'
+                        :cell-style='getCellStyle'
+                        :header-cell-style='getHeaderCellStyle'
+                        >
+                        <el-table-column
+                            prop='symbol'
+                            label='symbol'
+                            align='center'
+                            >
+                            <template slot-scope='scope'>
+                                <el-select v-model='scope.row.selectIndex' v-if='symbols.length !== 0' @change='selectSymbol(scope.$index, scope.row.selectIndex, "investables")'>
+                                    <el-option
+                                        v-for='(symbol, index) in symbols'
+                                        :key='index'
+                                        :value='index'
+                                        :label='symbol.symbol'
+                                        >
+                                    </el-option>
+                                </el-select>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop='type'
+                            label='type'
+                            align='center'
+                            >
+                        </el-table-column>
+                        <el-table-column
+                            prop='delete'
+                            :render-header='renderHeaderInvest'
+                            align='center'
+                            >
+                            <template slot-scope='scope'>
+                                <el-button @click='delInvest(scope.$index)'>删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </div>
+            <div style='flex: 1; margin-left: 20px;'>
+                <h2>init_portfolio</h2>
+                <div class='table-wrap'>
+                    <el-table border stripe
+                        :data='init_portfolio'
+                        height='100%'
+                        empty-text='暂无数据'
+                        :cell-style='getCellStyle'
+                        :header-cell-style='getHeaderCellStyle'
+                        >
+                        <el-table-column
+                            prop='symbol'
+                            label='symbol'
+                            align='center'
+                            >
+                            <template slot-scope='scope'>
+                                <el-select v-model='scope.row.selectIndex' v-if='symbols.length !== 0' @change='selectSymbol(scope.$index, scope.row.selectIndex, "init_portfolio")'>
+                                    <el-option
+                                        v-for='(symbol, index) in symbols'
+                                        :key='index'
+                                        :value='index'
+                                        :label='symbol.symbol'
+                                        >
+                                    </el-option>
+                                </el-select>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop='volume'
+                            label='volume'
+                            align='center'
+                            >
+                            <template slot-scope='scope'>
+                                <el-input v-model='scope.row.volume' type='number'></el-input>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop='delete'
+                            :render-header='renderHeaderInit'
+                            align='center'
+                            >
+                            <template slot-scope='scope'>
+                                <el-button @click='delInit(scope.$index)'>删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </div>
         </div>
-        <h2>init_portfolio</h2>
-        <div class='table-wrap'>
-            <el-table border stripe
-                :data='init_portfolio'
-                height='100%'
-                empty-text='暂无数据'
-                :cell-style='getCellStyle'
-                :header-cell-style='getHeaderCellStyle'
-                >
-                <el-table-column
-                    prop='symbol'
-                    label='symbol'
-                    align='center'
-                    >
-                    <template slot-scope='scope'>
-                        <el-select v-model='scope.row.selectIndex' v-if='symbols.length !== 0' @change='selectSymbol(scope.$index, scope.row.selectIndex, "init_portfolio")'>
-                            <el-option
-                                v-for='(symbol, index) in symbols'
-                                :key='index'
-                                :value='index'
-                                :label='symbol.symbol'
-                                >
-                            </el-option>
-                        </el-select>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop='volume'
-                    label='volume'
-                    align='center'
-                    >
-                    <template slot-scope='scope'>
-                        <el-input v-model='scope.row.volume' type='number'></el-input>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                    prop='delete'
-                    :render-header='renderHeaderInit'
-                    align='center'
-                    >
-                    <template slot-scope='scope'>
-                        <el-button @click='delInit(scope.$index)'>删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </div>
+
+
         <el-form inline>
             <el-form-item label='未投资金额'>
                 <el-input v-model='uninvested_cash' type='number'></el-input>
@@ -233,7 +241,9 @@
                 }).filter(i => i.symbol !== null)
                 data.robo_config_id = this.$route.params.id;
                 axios.post(`http://173.82.232.228:443/api/port`, data).then(res => {
-                    console.log(res.data)
+                    if(res.data.status === 'success') {
+                        this.$router.push(`/result`);
+                    }
                 })
             },
             getCellStyle() {
@@ -266,9 +276,10 @@
         h2 {
             font-size: 16px;
             line-height: 32px;
+            font-weight: normal;
         }
         .table-wrap {
-            height: 350px;
+            height: 400px;
             margin-bottom: 20px;
         }
     }

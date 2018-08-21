@@ -124,7 +124,8 @@
                     algo_type: sub_algo_types[name],
                 }))
                 // this.sub_algo_types = this.options[index].sub_algo_types;
-                this.schema = require('./schema.json');
+                this.schema = require(`./schema${Math.floor(Math.random()*3+1)}.json`);
+                // this.schema = this.options[index].algo_config_schema;
             },
         },
     }
